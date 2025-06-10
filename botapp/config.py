@@ -1,0 +1,2 @@
+settings = {"TOKEN": "7313160294:AAGmdDzu5KfcOz2hWs0Avbx2ZM-dlQuGgCA", "ADMIN": 1469378066}
+

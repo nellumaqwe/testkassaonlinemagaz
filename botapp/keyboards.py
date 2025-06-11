@@ -97,7 +97,7 @@ def cart_kb(name: int, current_page: int, total_pages: int):
 
     builder.add(InlineKeyboardButton(text="Buy all",callback_data=f"buy/all"))
 
-    builder.add(InlineKeyboardButton(text="Buy this",callback_data=f"buy/{name}"), InlineKeyboardButton(text="Delete from cart", callback_data=f"delete_from_cart/{id}"))
+    builder.add(InlineKeyboardButton(text="Buy this",callback_data=f"buy/{name}"), InlineKeyboardButton(text="Delete from cart", callback_data=f"delete_from_cart/{name}"))
 
     nav_buttons = []
     if current_page > 0:
@@ -125,13 +125,28 @@ def payment_kb():
 def choose_order_type():
     kb=[
         [
-            [InlineKeyboardButton(text="Active orders")],
-            [InlineKeyboardButton(text="Canceled orders")]
+            [InlineKeyboardButton(text="Active orders", callback_data="active_orders")],
+            [InlineKeyboardButton(text="Canceled orders", callback_data="canceled_orders")]
         ],
         [
-            InlineKeyboardButton(text="Done orders")
+            InlineKeyboardButton(text="Done orders", callback_data="done_orders")
         ]      
     ]
+
+def admin_orders_kb(order_id: int, current_page: int, total_pages: int):
+    builder = InlineKeyboardBuilder()
+
+    builder.add(InlineKeyboardButton(text="Mark as done",callback_data=f"done/{order_id}"))
+
+    nav_buttons = []
+    if current_page > 0:
+        nav_buttons.append(InlineKeyboardButton(text="⬅️ Previous",callback_data="order_prev_page"))
+     
+    if current_page < total_pages - 1:
+        nav_buttons.append(InlineKeyboardButton(text="Next ➡️",callback_data="order_next_page"))
+
+    builder.row(*nav_buttons)
+    return builder.as_markup()
 
 
     

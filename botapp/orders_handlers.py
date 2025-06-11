@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from decimal import Decimal
 from aiogram import F
-from botapp.keyboards import cart_kb, order_kb, payment_kb
+from botapp.keyboards import cart_kb, order_kb, payment_kb, choose_order_type
 from botapp.db.models import Product, Cart, User, Orders
 import logging
 from dadata import Dadata
@@ -127,4 +127,59 @@ async def send_order_data_to_admin(names, products_id, user_username, price, add
 
 @orders_router.callback_query(F.data=="watch_orders")
 async def watch_orders_handler(callback:CallbackQuery):
-    return
+    await callback.message.answer("Choose type of orders", reply_markup=choose_order_type())
+
+admin_orders_pages={}
+
+@orders_router.callback_query(F.data=="active_orders")
+async def active_orders_handler(callback:CallbackQuery, state: FSMContext):
+    orders_data = await Orders.filter(status="active")
+    
+    orders_list = [
+        {
+            "product_id": o.product_name,
+            "user_id": o.user_id
+        }
+        for o in orders_data
+    ]
+
+    order_pages = []
+
+    for order in orders_list:
+        u = await User.filter(user_id = order["user_id"]).first()
+        if len(order["product_id"])==1:
+            p = await Product.filter(id = order["product_id"]).first()
+            order_pages.append({
+                "user_username": u.user_username,
+                "address": u.address,
+                "product_name": p.name,
+                "price": p.price,
+                "picture": p.picture
+            })
+        elif len(order["product_id"]) > 1:
+            product_names = []
+            pictures = []
+            total_price = 0
+            for product_id in order["product_id"]:
+                p = await Product.filter(id=product_id).first()
+                if p:
+                    product_names.append(p.name)
+                    total_price += p.price
+                    pictures.append(p.picture)
+            
+            order_pages.append({
+                "user_username": u.user_username,
+                "address": u.address,
+                "product_name": ", ".join(product_names),
+                "price": total_price,
+                "picture": pictures
+            })
+    await state.set_state(Order.admin_data)
+    user_id = callback.message.from_user.id
+    admin_orders_pages[user_id] = 0
+
+            
+
+
+    
+
